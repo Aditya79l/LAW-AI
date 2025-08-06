@@ -10,7 +10,7 @@ const PLANS = [
     name: "Free",
     monthly: 0,
     yearly: 0,
-    cta: <a href="#signup">signup</a>,
+    cta: "signup",
     icon: Star,
     gradient: "from-gray-100 to-gray-200",
     iconBg: "bg-gray-100",
@@ -64,6 +64,18 @@ function PlanCard({ plan, annual, index }) {
   const price = annual ? plan.yearly : plan.monthly;
   const suffix = annual ? "/yr" : "/mo";
   const { icon: Icon } = plan;
+
+  // Handle button click navigation
+  const handleCTAClick = () => {
+    if (plan.cta === "signup") {
+      window.location.hash = "#signup";
+      // Or if using React Router: navigate("/signup")
+    } else {
+      // Handle other CTAs (Upgrade, etc.)
+      console.log(`${plan.cta} clicked for ${plan.name} plan`);
+      // You can add specific logic for upgrade actions here
+    }
+  };
 
   return (
     <div
@@ -133,13 +145,14 @@ function PlanCard({ plan, annual, index }) {
       {/* CTA Button - SAME STYLE FOR ALL */}
       <div className="relative z-10">
         <button
+          onClick={handleCTAClick}
           className="w-full h-12 px-6 rounded-xl bg-[#0d80f2] hover:bg-blue-700 
                           text-white font-bold text-base transition-all duration-300 
                           hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/40
                           focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50
                           transform active:scale-95"
         >
-          {plan.cta}
+          {plan.cta === "signup" ? "Sign Up" : plan.cta}
         </button>
       </div>
 
