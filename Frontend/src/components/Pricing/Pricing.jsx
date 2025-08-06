@@ -10,7 +10,7 @@ const PLANS = [
     name: "Free",
     monthly: 0,
     yearly: 0,
-    cta: "Sign Up",
+    cta: <a href="#signup">signup</a>,
     icon: Star,
     gradient: "from-gray-100 to-gray-200",
     iconBg: "bg-gray-100",
@@ -19,7 +19,7 @@ const PLANS = [
       "100 GB Storage",
       "1 User",
       "Basic Support",
-      "1,000 Tokens / month",
+      "10,000 Tokens / month",
     ],
   },
   {
@@ -36,7 +36,7 @@ const PLANS = [
       "1 TB Storage",
       "2 Users",
       "Advanced Support",
-      "10,000 Tokens / month",
+      "50,000 Tokens / month",
     ],
   },
   {
