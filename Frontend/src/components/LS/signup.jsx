@@ -191,9 +191,9 @@ export default function SignUpPage() {
                            hover:text-purple-400 transition-colors duration-300"
                 >
                   {showPassword ? (
-                    <EyeOff size={18} className="sm:w-5 sm:h-5" />
-                  ) : (
                     <Eye size={18} className="sm:w-5 sm:h-5" />
+                  ) : (
+                    <EyeOff size={18} className="sm:w-5 sm:h-5" />
                   )}
                 </button>
                 <div
@@ -231,9 +231,9 @@ export default function SignUpPage() {
                            hover:text-purple-400 transition-colors duration-300"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff size={18} className="sm:w-5 sm:h-5" />
-                  ) : (
                     <Eye size={18} className="sm:w-5 sm:h-5" />
+                  ) : (
+                    <EyeOff size={18} className="sm:w-5 sm:h-5" />
                   )}
                 </button>
                 <div

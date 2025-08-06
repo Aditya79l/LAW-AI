@@ -180,9 +180,9 @@ export default function LoginPage() {
                            hover:text-blue-400 transition-colors duration-300"
                 >
                   {showPassword ? (
-                    <EyeOff size={18} className="sm:w-5 sm:h-5" />
-                  ) : (
                     <Eye size={18} className="sm:w-5 sm:h-5" />
+                  ) : (
+                    <EyeOff size={18} className="sm:w-5 sm:h-5" />
                   )}
                 </button>
                 <div
