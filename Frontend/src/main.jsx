@@ -8,7 +8,7 @@ import HomePage from "./components/Home/Home.jsx";
 import Footer from "./components/Navbar/Footer.jsx";
 import Pricing from "./components/Pricing/Pricing.jsx";
 import LoginPage from "./components/LS/Login.jsx";
-import SignUpPage from "./components/Reg/SignUp.jsx";
+import SignUpPage from "./components/LS/SignUp.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
