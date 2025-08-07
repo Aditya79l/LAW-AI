@@ -36,7 +36,7 @@ Thumbs.db
 *.sqlite3
 *.db
 
-# Ignore logs and coverage
+# Logs and coverage
 logs/
 coverage/
 *.tgz
