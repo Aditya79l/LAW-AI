@@ -1,0 +1,19 @@
+const express = require("express");
+const {
+  register,
+  privyGoogleAuth,
+  login,
+} = require("../controllers/usersController");
+
+const router = express.Router();
+
+// Traditional registration
+router.post("/register", register);
+
+// Google authentication via Privy
+router.post("/privy-google-auth", privyGoogleAuth);
+
+// Traditional login
+router.post("/login", login);
+
+module.exports = router;

@@ -40,3 +40,5 @@ Thumbs.db
 logs/
 coverage/
 *.tgz
+
+package-lock.json
