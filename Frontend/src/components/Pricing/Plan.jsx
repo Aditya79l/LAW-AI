@@ -1,14 +1,15 @@
 /* SelectPlan.jsx --------------------------------------------------------- */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Check,
-  ArrowLeft,
   CreditCard,
   User,
   Crown,
   Zap,
   Star,
   Shield,
+  Lock,
+  AlertCircle,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------------ */
@@ -82,7 +83,69 @@ const PLANS = [
 ];
 
 /* ------------------------------------------------------------------------ */
-/* 2 – plan selection card                                                  */
+/* 2 – unauthorized access component                                        */
+/* ------------------------------------------------------------------------ */
+function UnauthorizedAccess() {
+  const handleSignUp = () => {
+    window.location.hash = "#signup";
+  };
+
+  const handleSignIn = () => {
+    window.location.hash = "#login";
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="max-w-md mx-auto text-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+          {/* Warning Icon */}
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+            <Lock size={32} className="text-red-600" />
+          </div>
+
+          {/* Header */}
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            Access Restricted
+          </h1>
+
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            You need to create an account or sign in to access plan selection.
+            Please complete the signup process first.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <button
+              onClick={handleSignUp}
+              className="w-full h-12 px-6 rounded-xl bg-[#0d80f2] hover:bg-blue-700 
+                        text-white font-bold transition-all duration-300 
+                        hover:scale-105 hover:shadow-xl hover:shadow-blue-500/40
+                        focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50"
+            >
+              Create Account
+            </button>
+
+            <button
+              onClick={handleSignIn}
+              className="w-full h-12 px-6 rounded-xl border-2 border-[#0d80f2] text-[#0d80f2] 
+                        font-bold hover:bg-[#0d80f2] hover:text-white transition-all duration-300
+                        hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50"
+            >
+              Sign In
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 mt-6">
+            🔒 Plan selection is only available after account creation
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+/* 3 – plan selection card                                                  */
 /* ------------------------------------------------------------------------ */
 function PlanCard({ plan, isSelected, onClick, annual }) {
   const price = annual ? plan.yearly : plan.monthly;
@@ -198,15 +261,10 @@ function PlanCard({ plan, isSelected, onClick, annual }) {
 }
 
 /* ------------------------------------------------------------------------ */
-/* 3 – billing form component                                               */
+/* 4 – payment form component (for paid plans only)                        */
 /* ------------------------------------------------------------------------ */
-function BillingForm({ selectedPlan, annual, onSubmit }) {
+function PaymentForm({ selectedPlan, annual, onSubmit, userEmail }) {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    company: "",
-    phone: "",
     cardNumber: "",
     expiryDate: "",
     cvv: "",
@@ -236,19 +294,10 @@ function BillingForm({ selectedPlan, annual, onSubmit }) {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.firstName) newErrors.firstName = "First name is required";
-    if (!formData.lastName) newErrors.lastName = "Last name is required";
-    if (!formData.email) newErrors.email = "Email is required";
-
-    if (selectedPlan.name !== "Free") {
-      if (!formData.cardNumber)
-        newErrors.cardNumber = "Card number is required";
-      if (!formData.expiryDate)
-        newErrors.expiryDate = "Expiry date is required";
-      if (!formData.cvv) newErrors.cvv = "CVV is required";
-      if (!formData.nameOnCard)
-        newErrors.nameOnCard = "Name on card is required";
-    }
+    if (!formData.cardNumber) newErrors.cardNumber = "Card number is required";
+    if (!formData.expiryDate) newErrors.expiryDate = "Expiry date is required";
+    if (!formData.cvv) newErrors.cvv = "CVV is required";
+    if (!formData.nameOnCard) newErrors.nameOnCard = "Name on card is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -265,192 +314,109 @@ function BillingForm({ selectedPlan, annual, onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Account Information */}
+      {/* Payment Information */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <User size={20} className="text-blue-600" />
-          Account Information
+          <CreditCard size={20} className="text-blue-600" />
+          Payment Information
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              First Name *
-            </label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                         ${
-                           errors.firstName
-                             ? "border-red-500"
-                             : "border-gray-300"
-                         }`}
-            />
-            {errors.firstName && (
-              <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name *
-            </label>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                         ${
-                           errors.lastName
-                             ? "border-red-500"
-                             : "border-gray-300"
-                         }`}
-            />
-            {errors.lastName && (
-              <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
-            )}
-          </div>
+        {/* User email display */}
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-800">
+            <strong>Account:</strong> {userEmail}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address *
+              Card Number *
             </label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="cardNumber"
+              value={formData.cardNumber}
               onChange={handleInputChange}
+              placeholder="1234 5678 9012 3456"
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
                          ${
-                           errors.email ? "border-red-500" : "border-gray-300"
+                           errors.cardNumber
+                             ? "border-red-500"
+                             : "border-gray-300"
                          }`}
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            {errors.cardNumber && (
+              <p className="text-red-500 text-xs mt-1">{errors.cardNumber}</p>
             )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Expiry Date *
+              </label>
+              <input
+                type="text"
+                name="expiryDate"
+                value={formData.expiryDate}
+                onChange={handleInputChange}
+                placeholder="MM/YY"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           ${
+                             errors.expiryDate
+                               ? "border-red-500"
+                               : "border-gray-300"
+                           }`}
+              />
+              {errors.expiryDate && (
+                <p className="text-red-500 text-xs mt-1">{errors.expiryDate}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                CVV *
+              </label>
+              <input
+                type="text"
+                name="cvv"
+                value={formData.cvv}
+                onChange={handleInputChange}
+                placeholder="123"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           ${
+                             errors.cvv ? "border-red-500" : "border-gray-300"
+                           }`}
+              />
+              {errors.cvv && (
+                <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>
+              )}
+            </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Company (Optional)
+              Name on Card *
             </label>
             <input
               type="text"
-              name="company"
-              value={formData.company}
+              name="nameOnCard"
+              value={formData.nameOnCard}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                         ${
+                           errors.nameOnCard
+                             ? "border-red-500"
+                             : "border-gray-300"
+                         }`}
             />
+            {errors.nameOnCard && (
+              <p className="text-red-500 text-xs mt-1">{errors.nameOnCard}</p>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Payment Information - Only for paid plans */}
-      {selectedPlan.name !== "Free" && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <CreditCard size={20} className="text-blue-600" />
-            Payment Information
-          </h3>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Card Number *
-              </label>
-              <input
-                type="text"
-                name="cardNumber"
-                value={formData.cardNumber}
-                onChange={handleInputChange}
-                placeholder="1234 5678 9012 3456"
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                           ${
-                             errors.cardNumber
-                               ? "border-red-500"
-                               : "border-gray-300"
-                           }`}
-              />
-              {errors.cardNumber && (
-                <p className="text-red-500 text-xs mt-1">{errors.cardNumber}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Expiry Date *
-                </label>
-                <input
-                  type="text"
-                  name="expiryDate"
-                  value={formData.expiryDate}
-                  onChange={handleInputChange}
-                  placeholder="MM/YY"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                             ${
-                               errors.expiryDate
-                                 ? "border-red-500"
-                                 : "border-gray-300"
-                             }`}
-                />
-                {errors.expiryDate && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.expiryDate}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  CVV *
-                </label>
-                <input
-                  type="text"
-                  name="cvv"
-                  value={formData.cvv}
-                  onChange={handleInputChange}
-                  placeholder="123"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                             ${
-                               errors.cvv ? "border-red-500" : "border-gray-300"
-                             }`}
-                />
-                {errors.cvv && (
-                  <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name on Card *
-              </label>
-              <input
-                type="text"
-                name="nameOnCard"
-                value={formData.nameOnCard}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                           ${
-                             errors.nameOnCard
-                               ? "border-red-500"
-                               : "border-gray-300"
-                           }`}
-              />
-              {errors.nameOnCard && (
-                <p className="text-red-500 text-xs mt-1">{errors.nameOnCard}</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Submit Button */}
       <button
@@ -462,11 +428,8 @@ function BillingForm({ selectedPlan, annual, onSubmit }) {
                    transform active:scale-95 flex items-center justify-center gap-2"
       >
         <Shield size={20} />
-        {selectedPlan.name === "Free"
-          ? "Create Free Account"
-          : `Subscribe to ${selectedPlan.name} - $${price}${
-              annual ? "/yr" : "/mo"
-            }`}
+        Subscribe to {selectedPlan.name} - ${price}
+        {annual ? "/yr" : "/mo"}
       </button>
 
       <p className="text-xs text-gray-500 text-center">
@@ -477,46 +440,156 @@ function BillingForm({ selectedPlan, annual, onSubmit }) {
 }
 
 /* ------------------------------------------------------------------------ */
-/* 4 – main SelectPlan component                                            */
+/* 5 – main SelectPlan component with access control                        */
 /* ------------------------------------------------------------------------ */
 export default function SelectPlan() {
   const [selectedPlanId, setSelectedPlanId] = useState("pro");
   const [billing, setBilling] = useState("Monthly");
-  const [step, setStep] = useState(1); // 1: Select Plan, 2: Billing Details
+  const [step, setStep] = useState(1);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState("");
+  const [userName, setUserName] = useState("");
 
   const annual = billing === "Annually";
   const selectedPlan = PLANS.find((p) => p.id === selectedPlanId);
+
+  // Check authorization on component mount
+  useEffect(() => {
+    const checkAccess = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromSignup = urlParams.get("from") === "signup";
+      const email =
+        urlParams.get("email") || localStorage.getItem("userEmail") || "";
+      const name = localStorage.getItem("userName") || "";
+
+      // Check if user came from signup process
+      if (fromSignup && email) {
+        setIsAuthorized(true);
+        setUserEmail(email);
+        setUserName(name);
+
+        // Prevent going back
+        window.history.pushState(null, "", window.location.href);
+        window.addEventListener("popstate", preventBack);
+
+        return;
+      }
+
+      // Check if user has completed signup recently (within last 10 minutes)
+      const signupTimestamp = localStorage.getItem("signupCompleted");
+      const storedEmail = localStorage.getItem("userEmail");
+
+      if (signupTimestamp && storedEmail) {
+        const timeDiff = Date.now() - parseInt(signupTimestamp);
+        const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+        if (timeDiff < tenMinutes) {
+          setIsAuthorized(true);
+          setUserEmail(storedEmail);
+          setUserName(localStorage.getItem("userName") || "");
+
+          // Still prevent going back for recent signups
+          window.history.pushState(null, "", window.location.href);
+          window.addEventListener("popstate", preventBack);
+
+          return;
+        }
+      }
+
+      // Check if user is already logged in (has active session)
+      const userSession = localStorage.getItem("user");
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+      if (userSession && isLoggedIn) {
+        try {
+          const user = JSON.parse(userSession);
+          setIsAuthorized(true);
+          setUserEmail(user.email || storedEmail);
+          setUserName(user.name || user.fullName || "");
+          return;
+        } catch (error) {
+          console.error("Error parsing user session:", error);
+        }
+      }
+
+      // If none of the above conditions are met, deny access
+      setIsAuthorized(false);
+    };
+
+    const timer = setTimeout(() => {
+      checkAccess();
+      setIsLoading(false);
+    }, 500); // Small delay for better UX
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("popstate", preventBack);
+    };
+  }, []);
+
+  const preventBack = (event) => {
+    window.history.pushState(null, "", window.location.href);
+  };
 
   const handlePlanSelect = (planId) => {
     setSelectedPlanId(planId);
   };
 
   const handleContinue = () => {
-    setStep(2);
-    // Scroll to top smoothly
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleFormSubmit = (formData) => {
-    console.log("Form submitted:", formData);
-    console.log("Selected plan:", selectedPlan);
-
-    // Here you would handle the actual subscription/payment processing
-    alert(`Welcome! Your ${selectedPlan.name} plan is now active.`);
-
-    // Redirect or show success state
-    // window.location.href = "/dashboard";
-  };
-
-  const handleBack = () => {
-    if (step === 2) {
-      setStep(1);
+    if (selectedPlan.name === "Free") {
+      handlePlanCompletion();
     } else {
-      // Navigate back to wherever you came from
-      window.history.back();
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
+  const handlePaymentSubmit = (paymentData) => {
+    console.log("Payment submitted:", paymentData);
+    console.log("Selected plan:", selectedPlan);
+    handlePlanCompletion();
+  };
+
+  const handlePlanCompletion = () => {
+    // Store selected plan
+    localStorage.setItem("selectedPlan", JSON.stringify(selectedPlan));
+    localStorage.setItem("planSelected", "true");
+
+    // Clear signup-specific data
+    localStorage.removeItem("signupCompleted");
+
+    // Show success and redirect to dashboard
+    alert(`Welcome! Your ${selectedPlan.name} plan is now active.`);
+    window.location.href = "/dashboard";
+  };
+
+  const handleSkipForNow = () => {
+    const freePlan = PLANS.find((p) => p.id === "free");
+    localStorage.setItem("selectedPlan", JSON.stringify(freePlan));
+    localStorage.setItem("planSelected", "true");
+    localStorage.removeItem("signupCompleted");
+    window.location.href = "/dashboard";
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show unauthorized access screen
+  if (!isAuthorized) {
+    return <UnauthorizedAccess />;
+  }
+
+  // Main plan selection interface (only shown if authorized)
   return (
     <section
       id="plan"
@@ -525,21 +598,26 @@ export default function SelectPlan() {
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <button
-            onClick={handleBack}
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6
-                      font-medium transition-colors duration-200 hover:translate-x-1"
-          >
-            <ArrowLeft size={20} />
-            {step === 2 ? "Back to Plan Selection" : "Back"}
-          </button>
+          {/* Welcome message for authorized users */}
+          <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-xl max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 justify-center text-green-800 mb-2">
+              <Check size={20} />
+              <span className="font-semibold">
+                Account Created Successfully!
+              </span>
+            </div>
+            <p className="text-green-700 text-sm">
+              Welcome {userName || userEmail}! Now choose your plan to get
+              started.
+            </p>
+          </div>
 
           <h1 className="text-4xl md:text-5xl font-black text-gray-800 mb-6 leading-tight">
             {step === 1 ? (
               <>
-                Choose Your{" "}
+                Choose Your Plan{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Perfect Plan
+                  to Get Started
                 </span>
               </>
             ) : (
@@ -549,8 +627,8 @@ export default function SelectPlan() {
 
           <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
             {step === 1
-              ? "Select the plan that best fits your needs. All plans come with a 30-day money-back guarantee."
-              : "You're just one step away from unlocking all the features. Complete your billing details below."}
+              ? "Select the plan that fits your needs. You can change or cancel anytime."
+              : "You're just one step away from unlocking all the features."}
           </p>
         </div>
 
@@ -601,8 +679,8 @@ export default function SelectPlan() {
               ))}
             </div>
 
-            {/* Continue button */}
-            <div className="text-center">
+            {/* Action buttons */}
+            <div className="text-center space-y-4">
               <button
                 onClick={handleContinue}
                 className="h-14 px-12 rounded-xl bg-[#0d80f2] hover:bg-blue-700 
@@ -611,12 +689,25 @@ export default function SelectPlan() {
                           focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50
                           transform active:scale-95"
               >
-                Continue with {selectedPlan?.name} Plan
+                {selectedPlan?.name === "Free"
+                  ? "Start with Free Plan"
+                  : `Continue with ${selectedPlan?.name} Plan`}
               </button>
+
+              {/* Skip option */}
+              <div>
+                <button
+                  onClick={handleSkipForNow}
+                  className="text-gray-600 hover:text-gray-800 text-sm font-medium underline
+                            transition-colors duration-200"
+                >
+                  Skip for now and start with Free plan
+                </button>
+              </div>
             </div>
           </>
         ) : (
-          /* Step 2: Billing Form */
+          /* Step 2: Payment Form */
           <div className="max-w-2xl mx-auto">
             {/* Selected plan summary */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
@@ -642,27 +733,33 @@ export default function SelectPlan() {
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-bold text-gray-900">
-                    {selectedPlan.monthly === 0
-                      ? "Free"
-                      : `$${
-                          annual ? selectedPlan.yearly : selectedPlan.monthly
-                        }`}
+                    ${annual ? selectedPlan.yearly : selectedPlan.monthly}
                   </div>
-                  {selectedPlan.monthly > 0 && (
-                    <div className="text-sm text-gray-600">
-                      {annual ? "/year" : "/month"}
-                    </div>
-                  )}
+                  <div className="text-sm text-gray-600">
+                    {annual ? "/year" : "/month"}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Billing form */}
-            <BillingForm
+            {/* Payment form */}
+            <PaymentForm
               selectedPlan={selectedPlan}
               annual={annual}
-              onSubmit={handleFormSubmit}
+              onSubmit={handlePaymentSubmit}
+              userEmail={userEmail}
             />
+
+            {/* Back to plan selection */}
+            <div className="text-center mt-6">
+              <button
+                onClick={() => setStep(1)}
+                className="text-gray-600 hover:text-gray-800 text-sm font-medium underline
+                          transition-colors duration-200"
+              >
+                ← Change selected plan
+              </button>
+            </div>
           </div>
         )}
       </div>

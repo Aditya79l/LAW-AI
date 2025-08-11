@@ -11,6 +11,7 @@ import Pricing from "./components/Pricing/Pricing.jsx";
 import LoginPage from "./components/LS/Login.jsx";
 import SignUpPage from "./components/LS/SignUp.jsx";
 import SelectPlan from "./components/Pricing/Plan.jsx";
+import Chat from "./components/Home/Chat.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -41,7 +42,10 @@ function HashRouterWrapper() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  if (hash === "#login") {
+  // Extract the route part (before any query parameters)
+  const route = hash.split("?")[0];
+
+  if (route === "#login") {
     return (
       <>
         <LoginPage />
@@ -49,14 +53,16 @@ function HashRouterWrapper() {
     );
   }
 
-  if (hash === "#signup") {
+  if (route === "#signup") {
     return (
       <>
         <SignUpPage />
       </>
     );
   }
-  if (hash === "#plan") {
+
+  // Add the plan route here
+  if (route === "#plan") {
     return (
       <>
         <SelectPlan />
@@ -64,6 +70,15 @@ function HashRouterWrapper() {
     );
   }
 
+  if (route === "#chat") {
+    return (
+      <>
+        <Chat />
+      </>
+    );
+  }
+
+  // Default route (home page)
   return (
     <>
       <Navbar />

@@ -1,3 +1,4 @@
+/* SignUp.jsx ------------------------------------------------------------ */
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, Mail, Lock, Chrome, ArrowLeft, User } from "lucide-react";
 import { usePrivy } from "@privy-io/react-auth";
@@ -32,6 +33,26 @@ export default function SignUp({ navigateTo }) {
 
   const handleTermsChange = (e) => {
     setFormData((prev) => ({ ...prev, termsAccepted: e.target.checked }));
+  };
+
+  // Helper function to redirect to plan page
+  const redirectToPlanPage = (userEmail, userName = "") => {
+    // Store user data for plan page
+    localStorage.setItem("userEmail", userEmail);
+    localStorage.setItem("signupCompleted", Date.now().toString());
+
+    if (userName) {
+      localStorage.setItem("userName", userName);
+    }
+
+    // Navigate to plan page with signup flag
+    if (navigateTo) {
+      navigateTo(`plan?from=signup&email=${encodeURIComponent(userEmail)}`);
+    } else {
+      window.location.hash = `#plan?from=signup&email=${encodeURIComponent(
+        userEmail
+      )}`;
+    }
   };
 
   // Traditional Email Signup
@@ -71,8 +92,16 @@ export default function SignUp({ navigateTo }) {
 
       if (response.data.success) {
         setSuccess(
-          "Account created successfully! Please check your email for verification."
+          "Account created successfully! Redirecting to plan selection..."
         );
+
+        // Store user data
+        if (response.data.user) {
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+        }
+
+        // Mark signup as completed with timestamp
+        localStorage.setItem("signupCompleted", Date.now().toString());
 
         // Reset form
         setFormData({
@@ -83,13 +112,9 @@ export default function SignUp({ navigateTo }) {
           termsAccepted: false,
         });
 
-        // Navigate to login page after success
+        // Redirect to plan page after 2 seconds
         setTimeout(() => {
-          if (navigateTo) {
-            navigateTo("login");
-          } else {
-            window.location.hash = "#login";
-          }
+          redirectToPlanPage(formData.email, formData.fullName);
         }, 2000);
       }
     } catch (error) {
@@ -127,18 +152,25 @@ export default function SignUp({ navigateTo }) {
         );
 
         if (response.data.success) {
-          setSuccess("Google signup successful! Redirecting...");
+          setSuccess(
+            "Google signup successful! Redirecting to plan selection..."
+          );
 
-          // Store user data if needed
+          // Store user data
           localStorage.setItem("user", JSON.stringify(response.data.user));
 
-          // Redirect to dashboard or home
+          // Mark signup as completed with timestamp
+          localStorage.setItem("signupCompleted", Date.now().toString());
+
+          // Extract user email from response
+          const userEmail =
+            response.data.user?.email || response.data.user?.emailAddress;
+          const userName =
+            response.data.user?.name || response.data.user?.fullName;
+
+          // Redirect to plan page after 1.5 seconds
           setTimeout(() => {
-            if (navigateTo) {
-              navigateTo("dashboard");
-            } else {
-              window.location.hash = "#dashboard";
-            }
+            redirectToPlanPage(userEmail, userName);
           }, 1500);
         }
       }
@@ -215,12 +247,12 @@ export default function SignUp({ navigateTo }) {
 
             {/* Error/Success Messages */}
             {error && (
-              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm text-center">
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm text-center animate-shake">
                 {error}
               </div>
             )}
             {success && (
-              <div className="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-300 text-sm text-center">
+              <div className="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-300 text-sm text-center animate-bounce">
                 {success}
               </div>
             )}
@@ -244,6 +276,7 @@ export default function SignUp({ navigateTo }) {
                   }
                   className="w-full h-11 sm:h-12 pl-10 sm:pl-12 pr-3 sm:pr-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-slate-400 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 hover:bg-white/15 focus:bg-white/15 focus:scale-105 hover:scale-102"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -262,6 +295,7 @@ export default function SignUp({ navigateTo }) {
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   className="w-full h-11 sm:h-12 pl-10 sm:pl-12 pr-3 sm:pr-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-slate-400 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 hover:bg-white/15 focus:bg-white/15 focus:scale-105 hover:scale-102"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -275,18 +309,20 @@ export default function SignUp({ navigateTo }) {
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password"
+                  placeholder="Password (min. 8 characters)"
                   value={formData.password}
                   onChange={(e) =>
                     handleInputChange("password", e.target.value)
                   }
                   className="w-full h-11 sm:h-12 pl-10 sm:pl-12 pr-10 sm:pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-slate-400 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 hover:bg-white/15 focus:bg-white/15 focus:scale-105 hover:scale-102"
                   required
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-slate-400 hover:text-purple-400 transition-colors duration-300"
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <Eye size={18} className="sm:w-5 sm:h-5" />
@@ -313,11 +349,13 @@ export default function SignUp({ navigateTo }) {
                   }
                   className="w-full h-11 sm:h-12 pl-10 sm:pl-12 pr-10 sm:pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-slate-400 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 hover:bg-white/15 focus:bg-white/15 focus:scale-105 hover:scale-102"
                   required
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-slate-400 hover:text-purple-400 transition-colors duration-300"
+                  disabled={isLoading}
                 >
                   {showConfirmPassword ? (
                     <Eye size={18} className="sm:w-5 sm:h-5" />
@@ -326,6 +364,51 @@ export default function SignUp({ navigateTo }) {
                   )}
                 </button>
               </div>
+
+              {/* Password strength indicator */}
+              {formData.password && (
+                <div className="px-1">
+                  <div className="flex space-x-1 mb-2">
+                    <div
+                      className={`h-1 w-full rounded ${
+                        formData.password.length >= 8
+                          ? "bg-green-500"
+                          : "bg-gray-300"
+                      }`}
+                    ></div>
+                    <div
+                      className={`h-1 w-full rounded ${
+                        formData.password.length >= 10 &&
+                        /[A-Z]/.test(formData.password)
+                          ? "bg-green-500"
+                          : "bg-gray-300"
+                      }`}
+                    ></div>
+                    <div
+                      className={`h-1 w-full rounded ${
+                        formData.password.length >= 12 &&
+                        /[A-Z]/.test(formData.password) &&
+                        /[0-9]/.test(formData.password)
+                          ? "bg-green-500"
+                          : "bg-gray-300"
+                      }`}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Password strength:{" "}
+                    {formData.password.length >= 12 &&
+                    /[A-Z]/.test(formData.password) &&
+                    /[0-9]/.test(formData.password)
+                      ? "Strong"
+                      : formData.password.length >= 10 &&
+                        /[A-Z]/.test(formData.password)
+                      ? "Medium"
+                      : formData.password.length >= 8
+                      ? "Weak"
+                      : "Too short"}
+                  </p>
+                </div>
+              )}
 
               {/* Terms and conditions */}
               <div className="flex items-start space-x-2 sm:space-x-3 pt-2">
@@ -336,6 +419,7 @@ export default function SignUp({ navigateTo }) {
                   onChange={handleTermsChange}
                   className="mt-1 w-3 h-3 sm:w-4 sm:h-4 text-purple-600 bg-white/10 border-white/20 rounded focus:ring-purple-500 focus:ring-2"
                   required
+                  disabled={isLoading}
                 />
                 <label
                   htmlFor="terms"
@@ -344,14 +428,16 @@ export default function SignUp({ navigateTo }) {
                   I agree to the{" "}
                   <button
                     type="button"
-                    className="text-purple-400 hover:text-purple-300 underline"
+                    className="text-purple-400 hover:text-purple-300 underline transition-colors duration-200"
+                    onClick={() => window.open("/terms", "_blank")}
                   >
                     Terms of Service
                   </button>{" "}
                   and{" "}
                   <button
                     type="button"
-                    className="text-purple-400 hover:text-purple-300 underline"
+                    className="text-purple-400 hover:text-purple-300 underline transition-colors duration-200"
+                    onClick={() => window.open("/privacy", "_blank")}
                   >
                     Privacy Policy
                   </button>
@@ -361,7 +447,7 @@ export default function SignUp({ navigateTo }) {
               {/* SignUp button */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !formData.termsAccepted}
                 className="w-full h-11 sm:h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold text-sm sm:text-base rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden group mt-4 sm:mt-6"
               >
                 {isLoading ? (
@@ -397,27 +483,55 @@ export default function SignUp({ navigateTo }) {
                   size={16}
                   className="sm:w-5 sm:h-5 text-slate-300 group-hover:text-white transition-colors duration-300"
                 />
-                <span>Sign up with Google</span>
+                <span>
+                  {isLoading ? "Signing up..." : "Sign up with Google"}
+                </span>
               </button>
 
               {/* Sign in link */}
               <div className="text-center pt-3 sm:pt-4">
-                <a href="#login">
-                  <button
-                    type="button"
-                    className="text-slate-300 hover:text-white font-medium text-xs sm:text-sm transition-all duration-300 hover:scale-105 group"
-                  >
-                    Already have an account?{" "}
-                    <span className="text-purple-400 hover:text-purple-300 group-hover:underline">
-                      Sign In
-                    </span>
-                  </button>
-                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigateTo) {
+                      navigateTo("login");
+                    } else {
+                      window.location.hash = "#login";
+                    }
+                  }}
+                  className="text-slate-300 hover:text-white font-medium text-xs sm:text-sm transition-all duration-300 hover:scale-105 group"
+                  disabled={isLoading}
+                >
+                  Already have an account?{" "}
+                  <span className="text-purple-400 hover:text-purple-300 group-hover:underline">
+                    Sign In
+                  </span>
+                </button>
               </div>
             </form>
           </div>
         </div>
       </div>
+
+      {/* Custom CSS for animations */}
+      <style jsx>{`
+        @keyframes shake {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-4px);
+          }
+          75% {
+            transform: translateX(4px);
+          }
+        }
+
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }
